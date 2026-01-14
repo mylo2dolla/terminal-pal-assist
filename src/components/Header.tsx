@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Terminal, User, LogOut, Settings, Server } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/AuthModal';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,23 +16,38 @@ import {
 export const Header = () => {
   const { user, loading, signOut } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-primary/20">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <Terminal className="w-6 h-6 text-primary text-glow" />
             <span className="font-mono font-bold text-lg text-primary text-glow">ServerCMD</span>
-          </div>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="font-mono text-sm text-muted-foreground hover:text-primary transition-colors">
-              features
-            </a>
-            <a href="#servers" className="font-mono text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link 
+              to="/" 
+              className={cn(
+                "font-mono text-sm transition-colors",
+                isActive('/') ? "text-primary text-glow" : "text-muted-foreground hover:text-primary"
+              )}
+            >
+              home
+            </Link>
+            <Link 
+              to="/servers" 
+              className={cn(
+                "font-mono text-sm transition-colors",
+                isActive('/servers') ? "text-primary text-glow" : "text-muted-foreground hover:text-primary"
+              )}
+            >
               servers
-            </a>
+            </Link>
             <a href="#docs" className="font-mono text-sm text-muted-foreground hover:text-primary transition-colors">
               docs
             </a>
@@ -54,9 +71,11 @@ export const Header = () => {
                     <p className="font-mono text-xs text-muted-foreground">logged in as</p>
                     <p className="font-mono text-sm text-primary truncate">{user.email}</p>
                   </div>
-                  <DropdownMenuItem className="font-mono text-sm cursor-pointer">
-                    <Server className="w-4 h-4 mr-2" />
-                    My Servers
+                  <DropdownMenuItem asChild className="font-mono text-sm cursor-pointer">
+                    <Link to="/servers">
+                      <Server className="w-4 h-4 mr-2" />
+                      My Servers
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="font-mono text-sm cursor-pointer">
                     <Settings className="w-4 h-4 mr-2" />

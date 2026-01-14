@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -35,6 +35,12 @@ export const useServerMetrics = (refreshInterval = 10000) => {
   const [servers, setServers] = useState<ServerWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const serversRef = useRef<ServerWithMetrics[]>([]);
+
+  // Keep ref in sync
+  useEffect(() => {
+    serversRef.current = servers;
+  }, [servers]);
 
   const fetchServers = useCallback(async () => {
     if (!user) {
@@ -57,16 +63,42 @@ export const useServerMetrics = (refreshInterval = 10000) => {
         loading: false,
         error: null,
       })));
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching servers:', error);
-    } finally {
       setLoading(false);
     }
   }, [user]);
 
   const fetchMetrics = useCallback(async (serverId: string) => {
-    const server = servers.find(s => s.id === serverId);
-    if (!server?.api_endpoint) return;
+    const server = serversRef.current.find(s => s.id === serverId);
+    if (!server?.api_endpoint) {
+      // Generate demo metrics for servers without API endpoints
+      setServers(prev => prev.map(s => 
+        s.id === serverId ? { 
+          ...s, 
+          metrics: {
+            cpu: 15 + Math.random() * 40,
+            memory: {
+              used: 2 + Math.random() * 3,
+              total: 8,
+              percentage: 25 + Math.random() * 35,
+            },
+            disk: {
+              used: 40 + Math.random() * 80,
+              total: 256,
+              percentage: 15 + Math.random() * 30,
+            },
+            uptime: 86400 + Math.floor(Math.random() * 864000),
+            loadAverage: [0.5 + Math.random(), 0.4 + Math.random(), 0.3 + Math.random()],
+            timestamp: new Date(),
+          },
+          loading: false,
+          error: 'Demo mode - no API endpoint',
+        } : s
+      ));
+      return;
+    }
 
     setServers(prev => prev.map(s => 
       s.id === serverId ? { ...s, loading: true, error: null } : s
@@ -89,32 +121,32 @@ export const useServerMetrics = (refreshInterval = 10000) => {
       
       // Parse metrics from server response
       const metrics: ServerMetrics = {
-        cpu: data.cpu ?? Math.random() * 100, // Fallback for demo
-        memory: data.memory ?? {
+        cpu: data?.cpu ?? Math.random() * 100,
+        memory: data?.memory ?? {
           used: Math.random() * 8,
           total: 8,
           percentage: Math.random() * 100,
         },
-        disk: data.disk ?? {
+        disk: data?.disk ?? {
           used: Math.random() * 100,
           total: 256,
           percentage: Math.random() * 100,
         },
-        uptime: data.uptime,
-        loadAverage: data.loadAverage,
+        uptime: data?.uptime,
+        loadAverage: data?.loadAverage,
         timestamp: new Date(),
       };
 
       setServers(prev => prev.map(s => 
-        s.id === serverId ? { ...s, metrics, loading: false } : s
+        s.id === serverId ? { ...s, metrics, loading: false, error: null } : s
       ));
     } catch (error) {
+      // Generate fallback demo data on error
       setServers(prev => prev.map(s => 
         s.id === serverId ? { 
           ...s, 
           loading: false, 
-          error: error instanceof Error ? error.message : 'Failed to fetch metrics',
-          // Generate mock data for demo purposes
+          error: 'Connection failed - showing demo data',
           metrics: {
             cpu: 25 + Math.random() * 50,
             memory: {
@@ -127,18 +159,20 @@ export const useServerMetrics = (refreshInterval = 10000) => {
               total: 256,
               percentage: 20 + Math.random() * 30,
             },
+            uptime: 172800,
+            loadAverage: [0.8, 0.6, 0.5],
             timestamp: new Date(),
           },
         } : s
       ));
     }
-  }, [servers]);
+  }, []);
 
   const refreshAllMetrics = useCallback(async () => {
-    const activeServers = servers.filter(s => s.api_endpoint);
-    await Promise.all(activeServers.map(s => fetchMetrics(s.id)));
+    const currentServers = serversRef.current;
+    await Promise.all(currentServers.map(s => fetchMetrics(s.id)));
     setLastRefresh(new Date());
-  }, [servers, fetchMetrics]);
+  }, [fetchMetrics]);
 
   // Initial fetch
   useEffect(() => {
@@ -148,20 +182,23 @@ export const useServerMetrics = (refreshInterval = 10000) => {
   // Fetch metrics after servers are loaded
   useEffect(() => {
     if (servers.length > 0 && !loading) {
-      refreshAllMetrics();
+      const hasNoMetrics = servers.every(s => s.metrics === null);
+      if (hasNoMetrics) {
+        refreshAllMetrics();
+      }
     }
-  }, [loading]);
+  }, [servers.length, loading, refreshAllMetrics]);
 
   // Auto-refresh metrics
   useEffect(() => {
-    if (refreshInterval <= 0) return;
+    if (refreshInterval <= 0 || servers.length === 0) return;
 
     const interval = setInterval(() => {
       refreshAllMetrics();
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [refreshInterval, refreshAllMetrics]);
+  }, [refreshInterval, servers.length, refreshAllMetrics]);
 
   return {
     servers,

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Terminal, User, LogOut, Settings, Server } from 'lucide-react';
+import { Terminal, User, LogOut, Settings, Server, Gauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/AuthModal';
@@ -48,6 +48,15 @@ export const Header = () => {
             >
               servers
             </Link>
+            <Link 
+              to="/metrics" 
+              className={cn(
+                "font-mono text-sm transition-colors",
+                isActive('/metrics') ? "text-primary text-glow" : "text-muted-foreground hover:text-primary"
+              )}
+            >
+              metrics
+            </Link>
             <a href="#docs" className="font-mono text-sm text-muted-foreground hover:text-primary transition-colors">
               docs
             </a>
@@ -75,6 +84,12 @@ export const Header = () => {
                     <Link to="/servers">
                       <Server className="w-4 h-4 mr-2" />
                       My Servers
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="font-mono text-sm cursor-pointer">
+                    <Link to="/metrics">
+                      <Gauge className="w-4 h-4 mr-2" />
+                      Live Metrics
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="font-mono text-sm cursor-pointer">

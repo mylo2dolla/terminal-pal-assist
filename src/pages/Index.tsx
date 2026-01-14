@@ -1,12 +1,15 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { TerminalHero } from "@/components/TerminalHero";
+import { FeaturesSection } from "@/components/FeaturesSection";
+import { CommandInput } from "@/components/CommandInput";
+import { StatusBar } from "@/components/StatusBar";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background pb-16">
+      <TerminalHero />
+      <FeaturesSection />
+      <CommandInput />
+      <StatusBar />
     </div>
   );
 };

@@ -14,7 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      connection_history: {
+        Row: {
+          command: string | null
+          executed_at: string
+          id: string
+          response: string | null
+          server_id: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          command?: string | null
+          executed_at?: string
+          id?: string
+          response?: string | null
+          server_id?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          command?: string | null
+          executed_at?: string
+          id?: string
+          response?: string | null
+          server_id?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_history_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "server_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          default_server_id: string | null
+          display_name: string | null
+          id: string
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_server_id?: string | null
+          display_name?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_server_id?: string | null
+          display_name?: string | null
+          id?: string
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      server_configurations: {
+        Row: {
+          api_endpoint: string | null
+          auth_type: string | null
+          created_at: string
+          description: string | null
+          host: string
+          id: string
+          is_active: boolean | null
+          nickname: string
+          port: number | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          auth_type?: string | null
+          created_at?: string
+          description?: string | null
+          host: string
+          id?: string
+          is_active?: boolean | null
+          nickname: string
+          port?: number | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          auth_type?: string | null
+          created_at?: string
+          description?: string | null
+          host?: string
+          id?: string
+          is_active?: boolean | null
+          nickname?: string
+          port?: number | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          command_aliases: Json | null
+          created_at: string
+          favorite_commands: string[] | null
+          id: string
+          notification_settings: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          command_aliases?: Json | null
+          created_at?: string
+          favorite_commands?: string[] | null
+          id?: string
+          notification_settings?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          command_aliases?: Json | null
+          created_at?: string
+          favorite_commands?: string[] | null
+          id?: string
+          notification_settings?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
